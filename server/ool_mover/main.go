@@ -11,6 +11,7 @@ import (
 func main() {
 	// Upload route
 	http.HandleFunc("/upload", uploadHandler)
+	http.HandleFunc("/set_quality/", registerQuality)
 	http.HandleFunc("/dl/", downloadHandler)
 	http.HandleFunc("/dlv/", downloadVid)
 	http.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
@@ -61,4 +62,12 @@ func downloadVid(w http.ResponseWriter, r *http.Request) {
 	toDlPath := filepath.Join("/tmp/t1/", rawFIs[0].Name())
 	fmt.Println(toDlPath)
 	http.ServeFile(w, r, toDlPath)
+}
+
+func registerQuality(w http.ResponseWriter, r *http.Request) {
+	quality := r.FormValue("q")
+	if quality != "" {
+		os.WriteFile("/tmp/render_quality.txt", []byte(quality), 0777)
+	}
+	fmt.Fprintf(w, "ok")
 }

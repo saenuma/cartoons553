@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -265,12 +266,27 @@ sudo systemctl start ool_mover
 
 		fmt.Println("Tested connection to your Render server.")
 
+		// write the quality of the render
+		resp, err := http.Get("http://" + instanceIP + ":8089/set_quality/?q=" + conf.Get("quality"))
+		if err != nil {
+			fmt.Println(err)
+		}
+		defer resp.Body.Close()
+		body2, err := io.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		if resp.StatusCode != 200 {
+			fmt.Println(string(body2))
+		}
+
+		// upload blender file to render
 		rawBlenderFile, err := os.ReadFile(blenderPath)
 		if err != nil {
 			panic(err)
 		}
 
-		// begin file upload
 		body := new(bytes.Buffer)
 		writer := multipart.NewWriter(body)
 		part, err := writer.CreateFormFile("file", filepath.Base(blenderPath))
@@ -321,16 +337,16 @@ sudo systemctl start ool_mover
 
 		fmt.Printf("Output: %s\n", dlPath)
 
-		// // delete the server
-		// op, err = computeService.Instances.Delete(conf.Get("project"), conf.Get("zone"), instanceName).Context(ctx).Do()
-		// if err != nil {
-		// 	panic(err)
-		// }
-		// err = waitForOperationZone(conf.Get("project"), conf.Get("zone"), computeService, op)
-		// if err != nil {
-		// 	panic(err)
-		// }
-		// fmt.Println("All Done. Server Deleted.")
+		// delete the server
+		op, err = computeService.Instances.Delete(conf.Get("project"), conf.Get("zone"), instanceName).Context(ctx).Do()
+		if err != nil {
+			panic(err)
+		}
+		err = waitForOperationZone(conf.Get("project"), conf.Get("zone"), computeService, op)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("All Done. Server Deleted.")
 
 	default:
 		color.Red.Println("Unexpected command. Run the cli with --help to find out the supported commands.")

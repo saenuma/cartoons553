@@ -54,7 +54,12 @@ func main() {
 
 func doRender(path string) {
 	fmt.Println("found: " + path)
-	exec.Command("blender", "-b", path, "-o", "/tmp/t1/", "-E", "CYCLES", "-F", "AVIJPEG", "-a").Run()
+	raw, _ := os.ReadFile("/tmp/render_quality.txt")
+	if string(raw) == "low" {
+		exec.Command("blender", "-b", path, "-o", "/tmp/t1/", "-E", "BLENDER_EEVEE", "-F", "AVIJPEG", "-a").Run()
+	} else {
+		exec.Command("blender", "-b", path, "-o", "/tmp/t1/", "-E", "CYCLES", "-F", "AVIJPEG", "-a").Run()
+	}
 	time.Sleep(30 * time.Second)
 	os.WriteFile("/tmp/ooldim_in/done.txt", []byte("done"), 0777)
 }
