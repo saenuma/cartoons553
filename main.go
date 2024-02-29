@@ -1,24 +1,23 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"mime/multipart"
+	"net/http"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/gookit/color"
+	"github.com/saenuma/zazabul"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	compute "google.golang.org/api/compute/v1"
-	"os"
-	"github.com/gookit/color"
-	"github.com/bankole7782/zazabul"
-	"fmt"
-	"time"
-	"strings"
-	"path/filepath"
-	// "io"
-	"bytes"
-	"os/exec"
-	"net/http"
-	"mime/multipart"
 )
-
 
 func main() {
 	if len(os.Args) < 2 {
@@ -34,7 +33,7 @@ func main() {
 
 	switch os.Args[1] {
 	case "--help", "help", "h":
-    fmt.Printf(`Ooldim creates a GCP VM, renders a blender project on it, downloads the renders and deletes the VM.
+		fmt.Printf(`cartoons553 creates a GCP VM, renders a blender project on it, downloads the renders and deletes the VM.
 
 Note: If you quit the program prematurely, go to https://console.cloud.google.com to delete
 the created VM.
@@ -52,8 +51,8 @@ Supported Commands:
 
 `, rootPath, rootPath)
 
-  case "init":
-		var	tmpl = `// project is the Google Cloud Project name
+	case "init":
+		var tmpl = `// project is the Google Cloud Project name
 // It can be created either from the Google Cloud Console or from the gcloud command
 project:
 
@@ -87,52 +86,52 @@ sak_file:
 		writePath := filepath.Join(rootPath, configFileName)
 
 		conf, err := zazabul.ParseConfig(tmpl)
-    if err != nil {
-    	panic(err)
-    }
+		if err != nil {
+			panic(err)
+		}
 
-    err = conf.Write(writePath)
-    if err != nil {
-      panic(err)
-    }
+		err = conf.Write(writePath)
+		if err != nil {
+			panic(err)
+		}
 
-    fmt.Printf("Edit the file at '%s' before launching.\n", writePath)
+		fmt.Printf("Edit the file at '%s' before launching.\n", writePath)
 
-  case "r":
-  	if len(os.Args) != 4 {
-  		color.Red.Println("The r command expects a blender file and the conf file")
-  		os.Exit(1)
-  	}
-  	blenderPath := filepath.Join(rootPath, os.Args[2])
-  	if ! DoesPathExists(blenderPath) {
-  		color.Red.Printf("The file '%s' does not exist in '%s'", os.Args[2], rootPath)
-  		os.Exit(1)
-  	}
+	case "r":
+		if len(os.Args) != 4 {
+			color.Red.Println("The r command expects a blender file and the conf file")
+			os.Exit(1)
+		}
+		blenderPath := filepath.Join(rootPath, os.Args[2])
+		if !DoesPathExists(blenderPath) {
+			color.Red.Printf("The file '%s' does not exist in '%s'", os.Args[2], rootPath)
+			os.Exit(1)
+		}
 
-  	serverConfigPath := filepath.Join(rootPath, os.Args[3])
+		serverConfigPath := filepath.Join(rootPath, os.Args[3])
 
-  	conf, err := zazabul.LoadConfigFile(serverConfigPath)
-  	if err != nil {
-  		panic(err)
-  		os.Exit(1)
-  	}
+		conf, err := zazabul.LoadConfigFile(serverConfigPath)
+		if err != nil {
+			panic(err)
+			os.Exit(1)
+		}
 
-  	for _, item := range conf.Items {
-  		if item.Value == "" {
-  			color.Red.Println("Every field in the launch file is compulsory.")
-  			os.Exit(1)
-  		}
-  	}
+		for _, item := range conf.Items {
+			if item.Value == "" {
+				color.Red.Println("Every field in the launch file is compulsory.")
+				os.Exit(1)
+			}
+		}
 
-  	credentialsFilePath := filepath.Join(rootPath, conf.Get("sak_file"))
-  	if ! DoesPathExists(credentialsFilePath) {
-  		color.Red.Printf("The file '%s' does not exist in '%s'\n", conf.Get("sak_file"), rootPath)
-  		os.Exit(1)
-  	}
+		credentialsFilePath := filepath.Join(rootPath, conf.Get("sak_file"))
+		if !DoesPathExists(credentialsFilePath) {
+			color.Red.Printf("The file '%s' does not exist in '%s'\n", conf.Get("sak_file"), rootPath)
+			os.Exit(1)
+		}
 
-  	instanceName := fmt.Sprintf("ooldim-%s", strings.ToLower(UntestedRandomString(4)))
+		instanceName := fmt.Sprintf("ooldim-%s", strings.ToLower(UntestedRandomString(4)))
 
-  	var startupScript = `
+		var startupScript = `
   	#! /bin/bash
 
 sudo apt update
@@ -147,12 +146,12 @@ gcloud compute firewall-rules create ooldimrules --direction ingress \
  --source-ranges 0.0.0.0/0 --rules tcp:8089 --action allow
 
 # download needed files
-wget https://saenuma.com/static/ool_mover
-wget https://saenuma.com/static/ool_mover.service
-wget https://saenuma.com/static/ool_shutdown
-wget https://saenuma.com/static/ool_shutdown.service
-wget https://saenuma.com/static/ool_render
-wget https://saenuma.com/static/ool_render.service
+wget https://saenuma.com/static/c553/ool_mover
+wget https://saenuma.com/static/c553/ool_mover.service
+wget https://saenuma.com/static/c553/ool_shutdown
+wget https://saenuma.com/static/c553/ool_shutdown.service
+wget https://saenuma.com/static/c553/ool_render
+wget https://saenuma.com/static/c553/ool_render.service
 
 # put the files in place
 sudo mkdir -p /opt/ooldim/
@@ -175,7 +174,7 @@ sudo systemctl start ool_mover
 
 		ctx := context.Background()
 
-  	data, err := os.ReadFile(credentialsFilePath)
+		data, err := os.ReadFile(credentialsFilePath)
 		if err != nil {
 			panic(err)
 		}
@@ -199,7 +198,7 @@ sudo systemctl start ool_mover
 		imageURL := image.SelfLink
 
 		instance := &compute.Instance{
-			Name: instanceName,
+			Name:        instanceName,
 			Description: "ooldim instance",
 			MachineType: prefix + "/zones/" + conf.Get("zone") + "/machineTypes/" + conf.Get("machine_type"),
 			Disks: []*compute.AttachedDisk{
@@ -210,11 +209,10 @@ sudo systemctl start ool_mover
 
 					InitializeParams: &compute.AttachedDiskInitializeParams{
 						SourceImage: imageURL,
-						DiskType: prefix + "/zones/" + conf.Get("zone") + "/diskTypes/pd-ssd",
-						DiskSizeGb: 10,
+						DiskType:    prefix + "/zones/" + conf.Get("zone") + "/diskTypes/pd-ssd",
+						DiskSizeGb:  10,
 					},
 				},
-
 			},
 			NetworkInterfaces: []*compute.NetworkInterface{
 				{
@@ -236,10 +234,10 @@ sudo systemctl start ool_mover
 					},
 				},
 			},
-			Metadata: &compute.Metadata {
-				Items: []*compute.MetadataItems {
+			Metadata: &compute.Metadata{
+				Items: []*compute.MetadataItems{
 					{
-						Key: "startup-script",
+						Key:   "startup-script",
 						Value: &startupScript,
 					},
 				},
@@ -291,7 +289,7 @@ sudo systemctl start ool_mover
 		if err != nil {
 			panic(err)
 		}
-		req, err := http.NewRequest("POST", "http://" + instanceIP + ":8089/upload", body)
+		req, err := http.NewRequest("POST", "http://"+instanceIP+":8089/upload", body)
 		if err != nil {
 			panic(err)
 		}
@@ -310,7 +308,7 @@ sudo systemctl start ool_mover
 			downloadImage(instanceIP, imageIndex, outPath)
 			imageIndex += 1
 
-			err := downloadFile("http://" + instanceIP + ":8089/dl/?p=" + "/tmp/ooldim_in/done.txt",
+			err := downloadFile("http://"+instanceIP+":8089/dl/?p="+"/tmp/ooldim_in/done.txt",
 				filepath.Join(rootPath, "done.txt"))
 			if err == nil {
 				break
@@ -336,11 +334,10 @@ sudo systemctl start ool_mover
 	}
 }
 
-
 func downloadImage(instanceIP string, number int, outPath string) {
 	filename := fmt.Sprintf("%04d", number) + ".png"
 	for {
-		err := downloadFile("http://" + instanceIP + ":8089/dl/?p=" + "/tmp/t1/" + filename,
+		err := downloadFile("http://"+instanceIP+":8089/dl/?p="+"/tmp/t1/"+filename,
 			filepath.Join(outPath, filename))
 		if err != nil {
 			time.Sleep(5 * time.Second)
@@ -353,7 +350,6 @@ func downloadImage(instanceIP string, number int, outPath string) {
 		exec.Command("xdg-open", outPath).Run()
 	}
 }
-
 
 func getRenderPath(filename string) string {
 	rootPath, _ := GetRootPath()
@@ -368,7 +364,6 @@ func getRenderPath(filename string) string {
 		}
 	}
 }
-
 
 func waitForOperationRegion(project, region string, service *compute.Service, op *compute.Operation) error {
 	ctx := context.Background()
@@ -392,7 +387,6 @@ func waitForOperationRegion(project, region string, service *compute.Service, op
 	}
 	return nil
 }
-
 
 func waitForOperationZone(project, zone string, service *compute.Service, op *compute.Operation) error {
 	ctx := context.Background()
