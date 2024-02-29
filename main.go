@@ -325,7 +325,7 @@ sudo systemctl start ool_mover
 			time.Sleep(10 * time.Second)
 			fmt.Printf("\rBeen rendering for: %s", time.Since(startTime).String())
 		}
-		fmt.Println("Rendered now dowloading.")
+		fmt.Println("\nRendered now dowloading.")
 		os.RemoveAll(filepath.Join(rootPath, "done.txt"))
 
 		rootPath, _ := GetRootPath()
