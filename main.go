@@ -76,7 +76,7 @@ machine_type: e2-highcpu-16
 // sak means service account key file.
 // sak_file is a key gotten from https://console.cloud.google.com .
 // It is necessary to connect to an instance.
-// It must be placed in the path gotten from running the command 'ooldim pwd'
+// It must be placed in the path where this config is.
 sak_file:
 
 
