@@ -78,6 +78,11 @@ machine_type: e2-highcpu-16
 // It must be placed in the path where this config is.
 sak_file:
 
+// the quality metric here specifies the render engine to use.
+// if the quality is high it would use CYCLES render engine.
+// if the quality is low it would use the EVEE render engine.
+quality: low
+
 
 	`
 		configFileName := "s" + time.Now().Format("20060102") + ".zconf"
@@ -290,12 +295,17 @@ sudo systemctl start ool_mover
 		}
 		fmt.Println("Uploaded blend file and beginning render")
 
+		startTime := time.Now()
+		fmt.Println()
 		for {
 			err := downloadFile("http://"+instanceIP+":8089/dl/?p="+"/tmp/ooldim_in/done.txt",
 				filepath.Join(rootPath, "done.txt"))
 			if err == nil {
 				break
 			}
+
+			time.Sleep(10 * time.Second)
+			fmt.Printf("\rBeen rendering for: %s", time.Since(startTime).String())
 		}
 		fmt.Println("Rendered now dowloading.")
 		os.RemoveAll(filepath.Join(rootPath, "done.txt"))
