@@ -1,0 +1,27 @@
+name: ooldim # you probably want to 'snapcraft register <name>'
+base: core18 # the base snap is the execution environment for this snap
+version: '1.0.2' # just for humans, typically '1.2+git' or '1.3.2'
+summary: A program that renders blender projects. # 79 char long summary
+description: |
+  Ooldim renders blender projects on Google Cloud.
+  You can pick any machine size you want.
+  And it would download the render output for you.
+
+grade: stable # must be 'stable' to release into candidate/stable channels
+confinement: strict # use 'strict' once you have the right plugs and slots
+
+architectures:
+  - build-on: amd64
+
+parts:
+  my-part:
+    # See 'snapcraft plugins'
+    plugin: go
+    source: .
+
+
+apps:
+  ooldim:
+    command: bin/ooldim
+    plugs:
+      - network

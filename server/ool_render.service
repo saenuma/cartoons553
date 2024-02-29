@@ -1,0 +1,14 @@
+[Unit]
+Description=Renders a blender file uploaded to a certain folder
+Wants=network.target
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/opt/ooldim/ool_render
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

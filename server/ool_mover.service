@@ -1,0 +1,14 @@
+[Unit]
+Description=Uploads and download files
+Wants=network.target
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/opt/ooldim/ool_mover
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
