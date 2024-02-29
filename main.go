@@ -18,6 +18,8 @@ import (
 	"google.golang.org/api/option"
 )
 
+const VersionFormat = "20060102T150405MST"
+
 func main() {
 	if len(os.Args) < 2 {
 		color.Red.Println("Expecting a command. Run with help subcommand to view help.")
@@ -81,12 +83,12 @@ sak_file:
 
 // the quality metric here specifies the render engine to use.
 // if the quality is high it would use CYCLES render engine.
-// if the quality is low it would use the EVEE render engine.
+// if the quality is low it would use the EEVEE render engine.
 quality: low
 
 
 	`
-		configFileName := "s" + time.Now().Format("20060102") + ".zconf"
+		configFileName := "s" + time.Now().Format(VersionFormat) + ".zconf"
 		writePath := filepath.Join(rootPath, configFileName)
 
 		conf, err := zazabul.ParseConfig(tmpl)
@@ -325,8 +327,6 @@ sudo systemctl start ool_mover
 		}
 		fmt.Println("Rendered now dowloading.")
 		os.RemoveAll(filepath.Join(rootPath, "done.txt"))
-
-		const VersionFormat = "20060102T150405MST"
 
 		rootPath, _ := GetRootPath()
 		dlPath := filepath.Join(rootPath, time.Now().Format(VersionFormat)+".avi")
