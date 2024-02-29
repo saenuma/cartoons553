@@ -316,6 +316,8 @@ sudo systemctl start ool_mover
 		dlPath := filepath.Join(rootPath, time.Now().Format(VersionFormat)+".avi")
 		downloadFile("http://"+instanceIP+":8089/dlv/", dlPath)
 
+		fmt.Printf("Output: %s\n", dlPath)
+
 		// delete the server
 		op, err = computeService.Instances.Delete(conf.Get("project"), conf.Get("zone"), instanceName).Context(ctx).Do()
 		if err != nil {
