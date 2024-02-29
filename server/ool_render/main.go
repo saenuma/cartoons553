@@ -1,14 +1,14 @@
 package main
 
 import (
-	"github.com/radovskyb/watcher"
+	"fmt"
+	"os"
+	"os/exec"
 	"strings"
 	"time"
-	"os/exec"
-	"os"
-	"fmt"
-)
 
+	"github.com/radovskyb/watcher"
+)
 
 func main() {
 
@@ -52,15 +52,12 @@ func main() {
 
 }
 
-
 func doRender(path string) {
 	fmt.Println("found: " + path)
-	exec.Command("blender", "-b", path, "-o", "/tmp/t1/", "-E", "CYCLES", "-a").Run()
+	exec.Command("blender", "-b", path, "-o", "/tmp/t1/", "-E", "CYCLES", "-F", "AVIJPEG", "-a").Run()
 	time.Sleep(30 * time.Second)
 	os.WriteFile("/tmp/ooldim_in/done.txt", []byte("done"), 0777)
 }
-
-
 
 func DoesPathExists(p string) bool {
 	if _, err := os.Stat(p); os.IsNotExist(err) {
