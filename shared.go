@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"math/rand"
 	"net/http"
@@ -77,6 +76,6 @@ func downloadFile(url, outPath string) error {
 		return errors.Wrap(err, "io error")
 	}
 
-	fmt.Println("Downloaded: " + filepath.Base(url))
+	// fmt.Println("Downloaded: " + filepath.Base(url))
 	return nil
 }

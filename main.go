@@ -13,9 +13,8 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/saenuma/zazabul"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 	compute "google.golang.org/api/compute/v1"
+	"google.golang.org/api/option"
 )
 
 func main() {
@@ -65,7 +64,7 @@ region:
 zone:
 
 
-// machine_type is the type of machine configuration to use to launch your flaarum server.
+// machine_type is the type of machine configuration to use render your blender project.
 // Get the machine_type from https://cloud.google.com/compute/all-pricing and its costs.
 // It is not necessary it must be an e2 instance.
 // If you find a render to be slow, use a bigger machine. Preferably a highcpu machine.
@@ -127,14 +126,16 @@ sak_file:
 			os.Exit(1)
 		}
 
-		instanceName := fmt.Sprintf("ooldim-%s", strings.ToLower(UntestedRandomString(4)))
+		instanceName := fmt.Sprintf("c553-%s", strings.ToLower(UntestedRandomString(4)))
 
 		var startupScript = `
   	#! /bin/bash
 
 sudo apt update
 sudo apt upgrade
-sudo apt install -y libglu1 libxi6 libgconf-2-4 libfontconfig1 libxrender1
+sudo apt install -y libx11-dev libxxf86vm-dev libxcursor-dev libxi-dev libxrandr-dev libxinerama-dev libegl-dev
+sudo apt install -y libwayland-dev wayland-protocols libxkbcommon-dev libdbus-1-dev linux-libc-dev
+sudo apt install -y libsm6
 sudo snap install blender --classic
 
 sudo mkdir -p /tmp/ooldim_in/
@@ -171,25 +172,14 @@ sudo systemctl start ool_mover
 `
 
 		ctx := context.Background()
-
-		data, err := os.ReadFile(credentialsFilePath)
-		if err != nil {
-			panic(err)
-		}
-		creds, err := google.CredentialsFromJSON(ctx, data, compute.ComputeScope)
-		if err != nil {
-			panic(err)
-		}
-
-		client := oauth2.NewClient(ctx, creds.TokenSource)
-
-		computeService, err := compute.New(client)
+		computeService, err := compute.NewService(ctx, option.WithCredentialsFile(credentialsFilePath),
+			option.WithScopes(compute.ComputeScope))
 		if err != nil {
 			panic(err)
 		}
 		prefix := "https://www.googleapis.com/compute/v1/projects/" + conf.Get("project")
 
-		image, err := computeService.Images.GetFromFamily("ubuntu-os-cloud", "ubuntu-minimal-2004-lts").Context(ctx).Do()
+		image, err := computeService.Images.GetFromFamily("ubuntu-os-cloud", "ubuntu-minimal-2204-lts").Context(ctx).Do()
 		if err != nil {
 			panic(err)
 		}
@@ -257,7 +247,7 @@ sudo systemctl start ool_mover
 		}
 		instanceIP := launchedInstance.NetworkInterfaces[0].AccessConfigs[0].NatIP
 
-		fmt.Printf("Ooldim Server Created. Name: %s, IP: %s\n", instanceName, instanceIP)
+		fmt.Printf("Render Server Created. Name: %s, IP: %s\n", instanceName, instanceIP)
 
 		for {
 			_, err := http.Get("http://" + instanceIP + ":8089/ready")
@@ -268,7 +258,7 @@ sudo systemctl start ool_mover
 			break
 		}
 
-		fmt.Println("Tested connection to your Ooldim server.")
+		fmt.Println("Tested connection to your Render server.")
 
 		rawBlenderFile, err := os.ReadFile(blenderPath)
 		if err != nil {
@@ -314,20 +304,23 @@ sudo systemctl start ool_mover
 
 		rootPath, _ := GetRootPath()
 		dlPath := filepath.Join(rootPath, time.Now().Format(VersionFormat)+".avi")
-		downloadFile("http://"+instanceIP+":8089/dlv/", dlPath)
+		err = downloadFile("http://"+instanceIP+":8089/dlv/", dlPath)
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		fmt.Printf("Output: %s\n", dlPath)
 
-		// delete the server
-		op, err = computeService.Instances.Delete(conf.Get("project"), conf.Get("zone"), instanceName).Context(ctx).Do()
-		if err != nil {
-			panic(err)
-		}
-		err = waitForOperationZone(conf.Get("project"), conf.Get("zone"), computeService, op)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println("All Done. Server Deleted.")
+		// // delete the server
+		// op, err = computeService.Instances.Delete(conf.Get("project"), conf.Get("zone"), instanceName).Context(ctx).Do()
+		// if err != nil {
+		// 	panic(err)
+		// }
+		// err = waitForOperationZone(conf.Get("project"), conf.Get("zone"), computeService, op)
+		// if err != nil {
+		// 	panic(err)
+		// }
+		// fmt.Println("All Done. Server Deleted.")
 
 	default:
 		color.Red.Println("Unexpected command. Run the cli with --help to find out the supported commands.")
