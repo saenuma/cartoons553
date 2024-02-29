@@ -7,7 +7,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -113,7 +112,6 @@ sak_file:
 		conf, err := zazabul.LoadConfigFile(serverConfigPath)
 		if err != nil {
 			panic(err)
-			os.Exit(1)
 		}
 
 		for _, item := range conf.Items {
@@ -146,12 +144,12 @@ gcloud compute firewall-rules create ooldimrules --direction ingress \
  --source-ranges 0.0.0.0/0 --rules tcp:8089 --action allow
 
 # download needed files
-wget https://saenuma.com/static/c553/ool_mover
-wget https://saenuma.com/static/c553/ool_mover.service
-wget https://saenuma.com/static/c553/ool_shutdown
-wget https://saenuma.com/static/c553/ool_shutdown.service
-wget https://saenuma.com/static/c553/ool_render
-wget https://saenuma.com/static/c553/ool_render.service
+wget https://sae.ng/static/c553/ool_mover
+wget https://sae.ng/static/c553/ool_mover.service
+wget https://sae.ng/static/c553/ool_shutdown
+wget https://sae.ng/static/c553/ool_shutdown.service
+wget https://sae.ng/static/c553/ool_render
+wget https://sae.ng/static/c553/ool_render.service
 
 # put the files in place
 sudo mkdir -p /opt/ooldim/
@@ -259,7 +257,7 @@ sudo systemctl start ool_mover
 		}
 		instanceIP := launchedInstance.NetworkInterfaces[0].AccessConfigs[0].NatIP
 
-		fmt.Println("Ooldim Server Created. Name: %s, IP: %s", instanceName, instanceIP)
+		fmt.Printf("Ooldim Server Created. Name: %s, IP: %s\n", instanceName, instanceIP)
 
 		for {
 			_, err := http.Get("http://" + instanceIP + ":8089/ready")
@@ -301,21 +299,22 @@ sudo systemctl start ool_mover
 			panic(err)
 		}
 		fmt.Println("Uploaded blend file and beginning render")
-		outPath := getRenderPath(os.Args[2])
 
-		imageIndex := 1
 		for {
-			downloadImage(instanceIP, imageIndex, outPath)
-			imageIndex += 1
-
 			err := downloadFile("http://"+instanceIP+":8089/dl/?p="+"/tmp/ooldim_in/done.txt",
 				filepath.Join(rootPath, "done.txt"))
 			if err == nil {
 				break
 			}
 		}
-		fmt.Println("downloaded render output.")
+		fmt.Println("Rendered now dowloading.")
 		os.RemoveAll(filepath.Join(rootPath, "done.txt"))
+
+		const VersionFormat = "20060102T150405MST"
+
+		rootPath, _ := GetRootPath()
+		dlPath := filepath.Join(rootPath, time.Now().Format(VersionFormat)+".avi")
+		downloadFile("http://"+instanceIP+":8089/dlv/", dlPath)
 
 		// delete the server
 		op, err = computeService.Instances.Delete(conf.Get("project"), conf.Get("zone"), instanceName).Context(ctx).Do()
@@ -334,66 +333,35 @@ sudo systemctl start ool_mover
 	}
 }
 
-func downloadImage(instanceIP string, number int, outPath string) {
-	filename := fmt.Sprintf("%04d", number) + ".png"
-	for {
-		err := downloadFile("http://"+instanceIP+":8089/dl/?p="+"/tmp/t1/"+filename,
-			filepath.Join(outPath, filename))
-		if err != nil {
-			time.Sleep(5 * time.Second)
-			continue
-		}
-		break
-	}
+// func waitForOperationRegion(project, region string, service *compute.Service, op *compute.Operation) error {
+// 	ctx := context.Background()
+// 	for {
+// 		result, err := service.RegionOperations.Get(project, region, op.Name).Context(ctx).Do()
+// 		if err != nil {
+// 			return fmt.Errorf("Failed retriving operation status: %s", err)
+// 		}
 
-	if number == 1 {
-		exec.Command("xdg-open", outPath).Run()
-	}
-}
-
-func getRenderPath(filename string) string {
-	rootPath, _ := GetRootPath()
-	added := 1
-	for {
-		f := filepath.Join(rootPath, fmt.Sprintf("%s_%d", filename, added))
-		if DoesPathExists(f) {
-			added += 1
-		} else {
-			os.MkdirAll(f, 0777)
-			return f
-		}
-	}
-}
-
-func waitForOperationRegion(project, region string, service *compute.Service, op *compute.Operation) error {
-	ctx := context.Background()
-	for {
-		result, err := service.RegionOperations.Get(project, region, op.Name).Context(ctx).Do()
-		if err != nil {
-			return fmt.Errorf("Failed retriving operation status: %s", err)
-		}
-
-		if result.Status == "DONE" {
-			if result.Error != nil {
-				var errors []string
-				for _, e := range result.Error.Errors {
-					errors = append(errors, e.Message)
-				}
-				return fmt.Errorf("Operation failed with error(s): %s", strings.Join(errors, ", "))
-			}
-			break
-		}
-		time.Sleep(time.Second)
-	}
-	return nil
-}
+// 		if result.Status == "DONE" {
+// 			if result.Error != nil {
+// 				var errors []string
+// 				for _, e := range result.Error.Errors {
+// 					errors = append(errors, e.Message)
+// 				}
+// 				return fmt.Errorf("Operation failed with error(s): %s", strings.Join(errors, ", "))
+// 			}
+// 			break
+// 		}
+// 		time.Sleep(time.Second)
+// 	}
+// 	return nil
+// }
 
 func waitForOperationZone(project, zone string, service *compute.Service, op *compute.Operation) error {
 	ctx := context.Background()
 	for {
 		result, err := service.ZoneOperations.Get(project, zone, op.Name).Context(ctx).Do()
 		if err != nil {
-			return fmt.Errorf("Failed retriving operation status: %s", err)
+			return fmt.Errorf("failed retriving operation status: %s", err)
 		}
 
 		if result.Status == "DONE" {
@@ -402,7 +370,7 @@ func waitForOperationZone(project, zone string, service *compute.Service, op *co
 				for _, e := range result.Error.Errors {
 					errors = append(errors, e.Message)
 				}
-				return fmt.Errorf("Operation failed with error(s): %s", strings.Join(errors, ", "))
+				return fmt.Errorf("operation failed with error(s): %s", strings.Join(errors, ", "))
 			}
 			break
 		}
