@@ -58,7 +58,7 @@ Supported Commands:
 project:
 
 // region is the Google Cloud Region name
-// Specify the region you want to launch your flaarum server in.
+// Specify the region you want to launch your Render server in.
 region:
 
 
