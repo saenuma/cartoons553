@@ -325,8 +325,11 @@ sudo systemctl start c553_mover
 			}
 
 			time.Sleep(10 * time.Second)
-			fmt.Printf("\rBeen rendering for: %s", time.Since(startTime).Round(time.Second).String())
+			fmt.Printf("\rBeen rendering for: %s \nClick %s to download a preview of your render.",
+				time.Since(startTime).Round(time.Second).String(),
+				"http://"+instanceIP+":8089/dlv/")
 		}
+
 		fmt.Println("\nRendered now dowloading.")
 		os.RemoveAll(filepath.Join(rootPath, "done.txt"))
 
