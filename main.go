@@ -325,7 +325,7 @@ sudo systemctl start c553_mover
 			}
 
 			time.Sleep(10 * time.Second)
-			fmt.Printf("\rBeen rendering for: %s", time.Since(startTime).String())
+			fmt.Printf("\rBeen rendering for: %s", time.Since(startTime).Round(time.Second).String())
 		}
 		fmt.Println("\nRendered now dowloading.")
 		os.RemoveAll(filepath.Join(rootPath, "done.txt"))
