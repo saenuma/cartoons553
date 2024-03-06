@@ -36,6 +36,8 @@ func main() {
 	case "--help", "help", "h":
 		fmt.Printf(`cartoons553 creates a GCP VM, renders a blender project on it, downloads the renders and deletes the VM.
 
+Note: Please try launching your choice server on Google Cloud's website before using it here.
+
 Note: If you quit the program prematurely, go to https://console.cloud.google.com to delete
 the created VM.
 
