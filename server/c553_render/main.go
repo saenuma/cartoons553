@@ -13,7 +13,7 @@ import (
 func main() {
 
 	for {
-		if DoesPathExists("/tmp/ooldim_in/") {
+		if DoesPathExists("/tmp/c553_in/") {
 			fmt.Println("In path found.")
 			break
 		} else {
@@ -42,7 +42,7 @@ func main() {
 		}
 	}()
 
-	if err := w.AddRecursive("/tmp/ooldim_in/"); err != nil {
+	if err := w.AddRecursive("/tmp/c553_in/"); err != nil {
 		panic(err)
 	}
 
@@ -61,7 +61,7 @@ func doRender(path string) {
 		exec.Command("blender", "-b", path, "-o", "/tmp/t1/", "-E", "CYCLES", "-F", "AVIJPEG", "-a").Run()
 	}
 	time.Sleep(30 * time.Second)
-	os.WriteFile("/tmp/ooldim_in/done.txt", []byte("done"), 0777)
+	os.WriteFile("/tmp/c553_in/done.txt", []byte("done"), 0777)
 }
 
 func DoesPathExists(p string) bool {

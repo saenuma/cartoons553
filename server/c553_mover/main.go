@@ -43,8 +43,8 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	os.MkdirAll("/tmp/ooldim_in/", 0777)
-	err = os.WriteFile("/tmp/ooldim_in/"+handler.Filename, rawFile, 0777)
+	os.MkdirAll("/tmp/c553_in/", 0777)
+	err = os.WriteFile("/tmp/c553_in/"+handler.Filename, rawFile, 0777)
 	if err != nil {
 		fmt.Fprintf(w, "not_ok")
 		fmt.Println(err)

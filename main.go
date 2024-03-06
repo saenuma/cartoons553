@@ -146,37 +146,37 @@ sudo apt install -y libwayland-dev wayland-protocols libxkbcommon-dev libdbus-1-
 sudo apt install -y libsm6
 sudo snap install blender --classic
 
-sudo mkdir -p /tmp/ooldim_in/
+sudo mkdir -p /tmp/c553_in/
 sudo rm -rf /tmp/t1/ # clean the output folder incase of reuse.
 
-gcloud compute firewall-rules create ooldimrules --direction ingress \
+gcloud compute firewall-rules create c553rules --direction ingress \
  --source-ranges 0.0.0.0/0 --rules tcp:8089 --action allow
 
 # download needed files
-wget https://sae.ng/static/c553/ool_mover
-wget https://sae.ng/static/c553/ool_mover.service
-wget https://sae.ng/static/c553/ool_shutdown
-wget https://sae.ng/static/c553/ool_shutdown.service
-wget https://sae.ng/static/c553/ool_render
-wget https://sae.ng/static/c553/ool_render.service
+wget https://sae.ng/static/c553/c553_mover
+wget https://sae.ng/static/c553/c553_mover.service
+wget https://sae.ng/static/c553/c553_shutdown
+wget https://sae.ng/static/c553/c553_shutdown.service
+wget https://sae.ng/static/c553/c553_render
+wget https://sae.ng/static/c553/c553_render.service
 
 # put the files in place
-sudo mkdir -p /opt/ooldim/
-sudo cp ool_mover /opt/ooldim/ool_mover
-sudo cp ool_shutdown /opt/ooldim/ool_shutdown
-sudo cp ool_render /opt/ooldim/ool_render
-sudo chmod +x /opt/ooldim/ool_mover
-sudo chmod +x /opt/ooldim/ool_shutdown
-sudo chmod +x /opt/ooldim/ool_render
-sudo cp ool_mover.service /etc/systemd/system/ool_mover.service
-sudo cp ool_shutdown.service /etc/systemd/system/ool_shutdown.service
-sudo cp ool_render.service /etc/systemd/system/ool_render.service
+sudo mkdir -p /opt/cartoons553/
+sudo cp c553_mover /opt/cartoons553/c553_mover
+sudo cp c553_shutdown /opt/cartoons553/c553_shutdown
+sudo cp c553_render /opt/cartoons553/c553_render
+sudo chmod +x /opt/cartoons553/c553_mover
+sudo chmod +x /opt/cartoons553/c553_shutdown
+sudo chmod +x /opt/cartoons553/c553_render
+sudo cp c553_mover.service /etc/systemd/system/c553_mover.service
+sudo cp c553_shutdown.service /etc/systemd/system/c553_shutdown.service
+sudo cp c553_render.service /etc/systemd/system/c553_render.service
 
 # start the programs
 sudo systemctl daemon-reload
-sudo systemctl start ool_shutdown
-sudo systemctl start ool_render
-sudo systemctl start ool_mover
+sudo systemctl start c553_shutdown
+sudo systemctl start c553_render
+sudo systemctl start c553_mover
 `
 
 		ctx := context.Background()
@@ -353,29 +353,6 @@ sudo systemctl start ool_mover
 		os.Exit(1)
 	}
 }
-
-// func waitForOperationRegion(project, region string, service *compute.Service, op *compute.Operation) error {
-// 	ctx := context.Background()
-// 	for {
-// 		result, err := service.RegionOperations.Get(project, region, op.Name).Context(ctx).Do()
-// 		if err != nil {
-// 			return fmt.Errorf("Failed retriving operation status: %s", err)
-// 		}
-
-// 		if result.Status == "DONE" {
-// 			if result.Error != nil {
-// 				var errors []string
-// 				for _, e := range result.Error.Errors {
-// 					errors = append(errors, e.Message)
-// 				}
-// 				return fmt.Errorf("Operation failed with error(s): %s", strings.Join(errors, ", "))
-// 			}
-// 			break
-// 		}
-// 		time.Sleep(time.Second)
-// 	}
-// 	return nil
-// }
 
 func waitForOperationZone(project, zone string, service *compute.Service, op *compute.Operation) error {
 	ctx := context.Background()

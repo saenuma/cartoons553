@@ -1,5 +1,5 @@
-module pandolee.com/ooldim/server
+module github.com/saenuma/cartoons553/server
 
-go 1.16
+go 1.22
 
 require github.com/radovskyb/watcher v1.0.7
