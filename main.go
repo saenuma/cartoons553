@@ -318,7 +318,7 @@ sudo systemctl start c553_mover
 		startTime := time.Now()
 		fmt.Println()
 		for {
-			err := downloadFile("http://"+instanceIP+":8089/dl/?p="+"/tmp/ooldim_in/done.txt",
+			err := downloadFile("http://"+instanceIP+":8089/dl/?p="+"/tmp/c553_in/done.txt",
 				filepath.Join(rootPath, "done.txt"))
 			if err == nil {
 				break
