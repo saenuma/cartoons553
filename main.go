@@ -317,6 +317,9 @@ sudo systemctl start c553_mover
 
 		startTime := time.Now()
 		fmt.Println()
+		fmt.Printf("Click %s to download a preview of your render while it renders.\n",
+			"http://"+instanceIP+":8089/dlv/")
+
 		for {
 			err := downloadFile("http://"+instanceIP+":8089/dl/?p="+"/tmp/c553_in/done.txt",
 				filepath.Join(rootPath, "done.txt"))
@@ -325,9 +328,7 @@ sudo systemctl start c553_mover
 			}
 
 			time.Sleep(10 * time.Second)
-			fmt.Printf("\rBeen rendering for: %s \nClick %s to download a preview of your render.",
-				time.Since(startTime).Round(time.Second).String(),
-				"http://"+instanceIP+":8089/dlv/")
+			fmt.Printf("\rBeen rendering for: %s  ", time.Since(startTime).Round(time.Second).String())
 		}
 
 		fmt.Println("\nRendered now dowloading.")
