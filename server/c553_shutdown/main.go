@@ -1,12 +1,11 @@
 package main
 
 import (
-	"time"
 	"os/exec"
+	"time"
 )
 
-
 func main() {
-	time.Sleep(4 * time.Hour)
+	time.Sleep(1 * time.Hour)
 	exec.Command("sudo", "shutdown", "-h", "now").Run()
 }
