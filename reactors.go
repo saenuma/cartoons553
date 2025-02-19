@@ -73,6 +73,10 @@ sudo apt install -y libwayland-dev wayland-protocols libxkbcommon-dev libdbus-1-
 sudo apt install -y libsm6
 sudo snap install blender --classic
 
+# install ops-agent
+curl -sSO https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh
+sudo bash add-google-cloud-ops-agent-repo.sh --also-install
+
 sudo mkdir -p /tmp/c553_in/
 sudo rm -rf /tmp/t1/ # clean the output folder incase of reuse.
 
