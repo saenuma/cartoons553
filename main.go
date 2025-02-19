@@ -78,6 +78,11 @@ machine_type: e2-highcpu-4
 // It must be placed in the path where this config is.
 sak_file:
 
+// the quality metric here specifies the render engine to use.
+// if the quality is high it would use CYCLES render engine.
+// if the quality is low it would use the EEVEE render engine.
+quality: low
+
 	`
 		configFileName := "s" + time.Now().Format(VersionFormat) + ".zconf"
 		confPath := filepath.Join(rootPath, configFileName)
