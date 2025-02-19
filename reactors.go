@@ -312,7 +312,7 @@ func doRender(blenderPath, serverConfigPath string) {
 	fmt.Println("\nRendered now dowloading.")
 	os.RemoveAll(filepath.Join(rootPath, "done.txt"))
 
-	dlPath := filepath.Join(rootPath, time.Now().Format(VersionFormat)+".avi")
+	dlPath := filepath.Join(rootPath, time.Now().Format(VersionFormat)+".mpeg")
 	err = downloadFile("http://"+instanceIP+":8089/dlv/", dlPath)
 	if err != nil {
 		fmt.Println(err)
