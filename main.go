@@ -5,51 +5,19 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/gookit/color"
 	"github.com/saenuma/zazabul"
 )
 
-const VersionFormat = "20060102T150405MST"
+const (
+	VersionFormat  = "20060102T150405MST"
+	AppVersion     = "13"
+	UpdateURLCheck = "https://sae.ng/static/c553/c553.txt"
 
-func main() {
-	if len(os.Args) < 2 {
-		color.Red.Println("Expecting a command. Run with help subcommand to view help.")
-		os.Exit(1)
-	}
-
-	rootPath, err := GetRootPath()
-	if err != nil {
-		color.Red.Println(err.Error())
-		os.Exit(1)
-	}
-
-	switch os.Args[1] {
-	case "--help", "help", "h":
-		fmt.Printf(`cartoons553 helps in rendering a blender project on Google Cloud.
-
-Note: Please try launching your choice server on Google Cloud's website before using it here.
-
-Note: 100 - 200 CPUs is recommended for rendering blender projects.
-
-Working Directory: '%s'
-All files must be placed in Working Directory (%s)
-
-Supported Commands:
-
-    prep    Prepares the render server for cartoons553. It would be already configured and kept in
-            in a suspended state. It prints a serverConfigFile
-
-    rnd     Renders a project with the config created above. It expects a blender file and a
-            serverConfigFile (created in prep command above)
-
-    del     Deletes a render server. It expects a serverConfigFile
-
-`, rootPath, rootPath)
-
-	case "prep":
-		var tmpl = `// project is the Google Cloud Project name
+	tmpl = `// project is the Google Cloud Project name
 // It can be created either from the Google Cloud Console or from the gcloud command
 project:
 
@@ -83,30 +51,78 @@ sak_file:
 quality: low
 
 	`
+)
+
+func main() {
+	if runtime.GOOS == "windows" {
+		if hasUpdate() {
+			fmt.Println("cartoons553 has an update")
+			fmt.Println("Go to https://sae.ng and download again.")
+			fmt.Println()
+		}
+	}
+
+	if len(os.Args) < 2 {
+		color.Red.Println("Expecting a command. Run with help subcommand to view help.")
+		os.Exit(1)
+	}
+
+	rootPath, err := GetRootPath()
+	if err != nil {
+		color.Red.Println(err.Error())
+		os.Exit(1)
+	}
+
+	switch os.Args[1] {
+	case "--help", "help", "h":
+		fmt.Printf(HelpMessage, rootPath, rootPath)
+
+	case "init":
+		if runtime.GOOS != "windows" {
+			return
+		}
+
 		configFileName := "s" + time.Now().Format(VersionFormat) + ".zconf"
 		confPath := filepath.Join(rootPath, configFileName)
+		os.WriteFile(confPath, []byte(tmpl), 0777)
+		fmt.Printf("Edit '%s' to your requirements.\n", confPath)
 
-		conf, err := zazabul.ParseConfig(tmpl)
-		if err != nil {
-			panic(err)
+	case "prep":
+		if runtime.GOOS == "linux" {
+			configFileName := "s" + time.Now().Format(VersionFormat) + ".zconf"
+			confPath := filepath.Join(rootPath, configFileName)
+
+			conf, err := zazabul.ParseConfig(tmpl)
+			if err != nil {
+				panic(err)
+			}
+
+			err = conf.Write(confPath)
+			if err != nil {
+				panic(err)
+			}
+
+			cmd := exec.Command("nano", confPath)
+			cmd.Stdin = os.Stdin
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			err = cmd.Run()
+			if err != nil {
+				color.Red.Println(err.Error())
+				os.Exit(1)
+			}
+
+			doPrep(confPath)
+
+		} else if runtime.GOOS == "windows" {
+			if len(os.Args) != 3 {
+				color.Red.Println("Expects a confPath gotten from the init command")
+				os.Exit(1)
+			}
+
+			confPath := os.Args[2]
+			doPrep(confPath)
 		}
-
-		err = conf.Write(confPath)
-		if err != nil {
-			panic(err)
-		}
-
-		cmd := exec.Command("nano", confPath)
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		err = cmd.Run()
-		if err != nil {
-			color.Red.Println(err.Error())
-			os.Exit(1)
-		}
-
-		doPrep(confPath)
 
 	case "rnd":
 		if len(os.Args) != 4 {
